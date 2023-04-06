@@ -25,7 +25,6 @@ import network.aika.elements.neurons.Range;
 import network.aika.elements.neurons.SampleSpace;
 import network.aika.elements.neurons.BindingNeuron;
 import network.aika.sign.Sign;
-import network.aika.utils.Bound;
 import network.aika.utils.Utils;
 
 import java.io.DataInput;
@@ -50,10 +49,6 @@ public class PatternSynapse extends ConjunctiveSynapse<
         >
 {
 
-    protected double frequencyIPosOPos;
-    protected double frequencyIPosONeg;
-    protected double frequencyINegOPos;
-
     protected SampleSpace sampleSpace = new SampleSpace();
 
     public PatternSynapse() {
@@ -74,19 +69,6 @@ public class PatternSynapse extends ConjunctiveSynapse<
 
     public SampleSpace getSampleSpace() {
         return sampleSpace;
-    }
-
-    public double getFrequency(Sign inputSign, Sign outputSign, double n) {
-        if(inputSign == POS && outputSign == POS) {
-            return frequencyIPosOPos;
-        } else if(inputSign == POS && outputSign == NEG) {
-            return frequencyIPosONeg;
-        } else if(inputSign == NEG && outputSign == POS) {
-            return frequencyINegOPos;
-        }
-
-        //TODO:
-        return Math.max(n - (frequencyIPosOPos + frequencyIPosONeg + frequencyINegOPos), 0);
     }
 
     public void setFrequency(Sign inputSign, Sign outputSign, double f) {
@@ -158,18 +140,6 @@ public class PatternSynapse extends ConjunctiveSynapse<
         double n = sampleSpace.getN(range);
         double probability = getProbability(inputSign, outputSign, n, addCurrentInstance);
         return Utils.surprisal(probability);
-    }
-
-    public double getProbability(Sign inputSign, Sign outputSign, double n, boolean addCurrentInstance) {
-        double frequency = getFrequency(inputSign, outputSign, n);
-
-        // Add the current instance
-        if(addCurrentInstance) {
-            frequency += 1.0;
-            n += 1.0;
-        }
-
-        return Bound.UPPER.probability(frequency, n);
     }
 
     @Override

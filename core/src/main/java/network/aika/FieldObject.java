@@ -19,6 +19,8 @@ package network.aika;
 import network.aika.direction.Direction;
 import network.aika.fields.AbstractFieldLink;
 import network.aika.fields.Field;
+import network.aika.sign.Sign;
+import network.aika.utils.Bound;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,12 +28,19 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static network.aika.sign.Sign.NEG;
+import static network.aika.sign.Sign.POS;
+
 /**
  *
  * @author Lukas Molzberger
  */
 public abstract class FieldObject {
 
+    protected double frequency;
+    protected double frequencyIPosOPos;
+    protected double frequencyIPosONeg;
+    protected double frequencyINegOPos;
     List<Field> fields = new ArrayList<>();
 
     public void register(Field field) {
@@ -74,5 +83,47 @@ public abstract class FieldObject {
     public void disconnect() {
         disconnect(Direction.INPUT, false, true, true);
         disconnect(Direction.OUTPUT, false, true, true);
+    }
+
+    public double getFrequency(Sign s, double n) {
+        return s == POS ?
+                frequency :
+                n - frequency;
+    }
+
+    public double getProbability(Sign s, double n, boolean addCurrentInstance) {
+        double f = getFrequency(s, n);
+
+        if(addCurrentInstance) {
+            f += 1.0;
+            n += 1.0;
+        }
+
+        return Bound.UPPER.probability(f, n);
+    }
+
+    public double getFrequency(Sign inputSign, Sign outputSign, double n) {
+        if(inputSign == POS && outputSign == POS) {
+            return frequencyIPosOPos;
+        } else if(inputSign == POS && outputSign == NEG) {
+            return frequencyIPosONeg;
+        } else if(inputSign == NEG && outputSign == POS) {
+            return frequencyINegOPos;
+        }
+
+        //TODO:
+        return Math.max(n - (frequencyIPosOPos + frequencyIPosONeg + frequencyINegOPos), 0);
+    }
+
+    public double getProbability(Sign inputSign, Sign outputSign, double n, boolean addCurrentInstance) {
+        double frequency = getFrequency(inputSign, outputSign, n);
+
+        // Add the current instance
+        if(addCurrentInstance) {
+            frequency += 1.0;
+            n += 1.0;
+        }
+
+        return Bound.UPPER.probability(frequency, n);
     }
 }

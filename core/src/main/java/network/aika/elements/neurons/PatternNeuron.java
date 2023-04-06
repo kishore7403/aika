@@ -22,7 +22,6 @@ import network.aika.elements.activations.Activation;
 import network.aika.elements.activations.PatternActivation;
 import network.aika.elements.synapses.*;
 import network.aika.sign.Sign;
-import network.aika.utils.Bound;
 import network.aika.utils.Utils;
 import network.aika.visitor.linking.LinkingOperator;
 import network.aika.visitor.linking.pattern.PatternDownVisitor;
@@ -31,15 +30,11 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 
-import static network.aika.sign.Sign.POS;
-
 /**
  *
  * @author Lukas Molzberger
  */
 public class PatternNeuron extends ConjunctiveNeuron<PatternActivation> {
-
-    protected double frequency;
 
     protected SampleSpace sampleSpace = new SampleSpace();
 
@@ -112,12 +107,6 @@ public class PatternNeuron extends ConjunctiveNeuron<PatternActivation> {
         return frequency;
     }
 
-    public double getFrequency(Sign s, double n) {
-        return s == POS ?
-                frequency :
-                n - frequency;
-    }
-
     public void setFrequency(double f) {
         frequency = f;
         setModified();
@@ -127,17 +116,6 @@ public class PatternNeuron extends ConjunctiveNeuron<PatternActivation> {
         double n = sampleSpace.getN(range);
         double p = getProbability(s, n, addCurrentInstance);
         return Utils.surprisal(p);
-    }
-
-    public double getProbability(Sign s, double n, boolean addCurrentInstance) {
-        double f = getFrequency(s, n);
-
-        if(addCurrentInstance) {
-            f += 1.0;
-            n += 1.0;
-        }
-
-        return Bound.UPPER.probability(f, n);
     }
 
     @Override
